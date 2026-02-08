@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Демо: журнал рейсов</title>
+
+<style>
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    background:#0b1220;
+    color:#eaf0ff;
+  }
+  .container{max-width:1000px;margin:auto;padding:24px}
+  h1{margin:0 0 8px}
+  p{color:#a8b3d6}
+
+  .card{
+    background:#101a31;
+    border-radius:16px;
+    padding:20px;
+    margin-bottom:20px;
+  }
+
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+  .field{flex:1;min-width:200px}
+  label{font-weight:700;margin-bottom:6px;display:block}
+
+  select{
+    width:100%;
+    padding:12px;
+    border-radius:12px;
+    border:none;
+    background:#1a2444;
+    color:#fff;
+  }
+
+  button{
+    padding:12px 18px;
+    border-radius:12px;
+    border:none;
+    cursor:pointer;
+    font-weight:800;
+  }
+  .save{background:#4f7cff;color:#061028}
+  .clear{background:#333;color:#fff}
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:600px;
+  }
+  th,td{
+    padding:12px;
+    border-bottom:1px solid #2a355a;
+    text-align:left;
+  }
+  th{color:#a8b3d6;font-size:13px}
+  tr:hover td{background:#141f3d}
+
+  .pill{
+    padding:6px 10px;
+    border-radius:999px;
+    background:#1a2444;
+    display:inline-block;
+    font-weight:700;
+  }
+
+  .msg{margin-top:10px;font-weight:800}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>Демо-журнал рейсов</h1>
+<p>Данные хранятся <b>только в рамках текущей сессии</b> (после обновления страницы журнал очищается).</p>
+
+<div class="card">
+  <div class="row">
+    <div class="field">
+      <label>Водитель</label>
+      <select id="driver">
+        <option value="">— выбрать —</option>
+        <option>Алекс</option>
+        <option>Мени</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Откуда</label>
+      <select id="from">
+        <option value="">— выбрать —</option>
+        <option>Шоам</option>
+        <option>Петах-Тиква</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Куда</label>
+      <select id="to">
+        <option value="">— выбрать —</option>
+        <option>Петах-Тиква</option>
+        <option>Шоам</option>
+      </select>
+    </div>
+
+    <button class="save" onclick="saveTrip()">Сохранить</button>
+    <button class="clear" onclick="clearSession()">Очистить</button>
+  </div>
+
+  <div id="msg" class="msg"></div>
+</div>
+
+<div class="card">
+  <b>Журнал рейсов</b>
+  <div style="overflow:auto;margin-top:12px">
+    <table>
+      <thead>
+        <tr>
+          <th>Время</th>
+          <th>Водитель</th>
+          <th>Маршрут</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+
+<script>
+const KEY = "demo_trips";
+
+function load(){
+  return JSON.parse(sessionStorage.getItem(KEY) || "[]");
+}
+function save(data){
+  sessionStorage.setItem(KEY, JSON.stringify(data));
+}
+function now(){
+  const d = new Date();
+  return d.toLocaleString("ru-RU");
+}
+
+function render(){
+  const tbody = document.getElementById("tbody");
+  tbody.innerHTML = "";
+  load().forEach(t=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${t.time}</td>
+      <td><span class="pill">${t.driver}</span></td>
+      <td><span class="pill">${t.from}</span> → <span class="pill">${t.to}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function saveTrip(){
+  const driver = driver.value;
+  const from = document.getElementById("from").value;
+  const to = document.getElementById("to").value;
+  const msg = document.getElementById("msg");
+
+  if(!driver || !from || !to){
+    msg.textContent = "Нужно выбрать все поля";
+    msg.style.color = "#ffb0b0";
+    return;
+  }
+
+  const data = load();
+  data.unshift({time: now(), driver, from, to});
+  save(data);
+  render();
+
+  msg.textContent = "Рейс сохранён (только на время сессии)";
+  msg.style.color = "#9ff3c8";
+}
+
+function clearSession(){
+  sessionStorage.removeItem(KEY);
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
